@@ -3,6 +3,7 @@ from pydantic import BaseModel
 
 class Task(BaseModel):
     title: str
+    done: bool
   
 
 app = FastAPI()
@@ -78,3 +79,48 @@ def create_task(task: Task):
         "message": "Task created successfully",
         "task": task
     }
+
+@app.put("/task/{id}")
+def update_task(id: int, task_update: Task):
+
+    for task in tasks:
+        if task["id"] == id:
+
+            update_data = task_update.model_dump(exclude_unset=True)
+
+
+           
+            if not update_data:
+                raise HTTPException(
+                    status_code=400,
+                    detail="No fields provided for update"
+            )
+
+            if "title" in update_data and not update_data["title"].strip():
+                raise HTTPException(
+                    status_code=400,
+                    detail="Title cannot be empty"
+            )
+            
+            task.update(update_data)
+
+            return task
+
+    raise HTTPException(
+    status_code=404,
+    detail="Task not found"
+    )
+
+
+@app.delete("/task/{id}")
+def delete_task(id: int):
+
+    for task in tasks:
+        if task["id"] == id:
+            task.pop
+            return {"message": f"Successfully remove {task["title"]}"}
+        
+    raise HTTPException(
+    status_code=404,
+    detail="Task not found"
+    )
